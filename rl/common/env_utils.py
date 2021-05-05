@@ -57,6 +57,8 @@ def construct_envs(config, env_class):
         VectorEnv object created according to specification.
     """
 
+    print(f"contruct envs starts! Mode: {config.MODE}")
+
     if config.MODE == 'eval':
         test_episodes = [[] for _ in range(config.NUM_PROCESSES)]
         for idx, episode in enumerate(config.ENV.TEST_EPISODES):
@@ -73,12 +75,16 @@ def construct_envs(config, env_class):
         config.freeze()
 
     num_processes = config.NUM_PROCESSES
+    print(f"number of process: {num_processes}")
+
     env_classes = [env_class for _ in range(num_processes)]
+    print(f"env classes: {env_classes}")
 
     displays = [None]
     if config.X_DISPLAY is not None:
         displays = config.X_DISPLAY.strip(':').split(',')
     displays = displays*(num_processes//len(displays) + 1)
+    print(f"displays: {displays}")
 
     # create {num_processes} configs, one for each environment
     configs = []
@@ -100,6 +106,7 @@ def construct_envs(config, env_class):
         ranks = [np.random.randint(1000) for _ in range(num_processes)]
     elif config.MODE=='eval':
         ranks = list(range(num_processes))
+
 
     envs = VectorEnv(
         make_env_fn=make_env_fn,

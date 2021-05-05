@@ -28,6 +28,7 @@ class ThorEnv(gym.Env):
         self.action_space = spaces.Discrete(len(self.actions))
 
         local_exe = None if self.config.ENV.LOCAL_EXE=='None' else self.config.ENV.LOCAL_EXE
+        print("ThorEnv: contruct Thor Env!")
         self.controller = ai2thor.controller.Controller(quality='Ultra',
                                                         local_executable_path=local_exe,
                                                         x_display=self.x_display)

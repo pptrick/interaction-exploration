@@ -130,7 +130,7 @@ class VectorEnv:
         for write_fn in self._connection_write_fns:
             write_fn((OBSERVATION_SPACE_COMMAND, None))
         self.observation_spaces = [
-            read_fn() for read_fn in self._connection_read_fns
+            read_fn() for read_fn in self._connection_read_fns # only one read_fn, ithor contruct here
         ]
         for write_fn in self._connection_write_fns:
             write_fn((ACTION_SPACE_COMMAND, None))

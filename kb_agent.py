@@ -140,7 +140,6 @@ class KBController(object):
 
     def run(self):
         for action in self.step():
-
             # handle special controller actions
             if action=='done':
                 sys.exit(0)
