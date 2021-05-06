@@ -113,7 +113,7 @@ class CameraProjection:
         P = torch.bmm(R, P) + P0 # (B, 3, 3) * (B, 3, h*w) + (B, 3, 1) --> (B, 3, h*w)
         P = rearrange(P, 'b p (h w) -> b p h w', h=imh, w=imw)
 
-        return 
+        return P
 
 
 # code below modified from: https://github.com/allenai/ai2thor/issues/124#issuecomment-473017391

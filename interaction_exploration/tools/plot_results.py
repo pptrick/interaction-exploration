@@ -76,6 +76,7 @@ def run_eval(models, labels, ax, colors, K=16, T=None):
 
         for run, path in zip(runs, paths):
             eval_episodes[model][run] = parse_episodes(model, path, K)
+            break
 
         plot_multirun(eval_episodes[model], labels[idx], ax, T=T, color=colors[idx])
     
@@ -90,4 +91,5 @@ run_eval(models, labels, ax, colors)
 ax.legend(loc='upper left')
 ax.set_xlabel('timesteps')
 ax.set_ylabel('Interaction coverage')
-plt.show()
+# plt.show()
+plt.savefig("res.png")

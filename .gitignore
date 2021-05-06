@@ -6,5 +6,9 @@ xorg.*
 
 interaction_exploration/cv
 affordance_seg/cv
+viz_res/
+nohup.out
 
+affordance_seg/data/rgb/
 
+cv/

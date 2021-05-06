@@ -83,6 +83,7 @@ def viz(args, sz=300):
 
     # create model
     net = UNet(args)
+    print("args.load: ", args.load)
     net.load_state_dict(torch.load(args.load)['state_dict'])
     net.cuda().eval()
 
@@ -133,7 +134,7 @@ def viz(args, sz=300):
         viz_tensors.append(out)
 
         grid = make_grid(viz_tensors, nrow=len(viz_tensors))
-        util.show_wait(grid, T=0)
+        util.show_wait(grid, T=0, save=f"./viz_res/viz_{idx}.png")
 
 def mean_stdev_stats(args):
 
@@ -179,13 +180,14 @@ if __name__ == '__main__':
     parser.add_argument('--train', action ='store_true', default=False)
     parser.add_argument('--viz', action ='store_true', default=False)
     parser.add_argument('--eval', action ='store_true', default=False)
+    parser.add_argument('--K', type=int, default=2000)
     args = parser.parse_args()
 
 
-    if not os.path.exists(f'{args.data_dir}/seg_data.npz'):
-        dset = AffordanceDataset(out_sz=80)
-        dset.populate_dset(f'{args.data_dir}/episodes/')
-        dset.save_entries(args.data_dir)
+    # if not os.path.exists(f'{args.data_dir}/seg_data.npz'):
+    #     dset = AffordanceDataset(out_sz=80)
+    #     dset.populate_dset(f'{args.data_dir}/episodes/', K=args.K)
+    #     dset.save_entries(args.data_dir)
 
     if args.train:
         train(args)
