@@ -31,22 +31,24 @@ def resize(tensor, sz=300, mode='bilinear'):
 
     return tensor
 
+#TODO: error occurs on multipe gpus, check this out
 def train(args):
 
     model = UNet(args)
 
     checkpoint_callback = ModelCheckpoint(
         filepath=args.cv_dir+'/{epoch:02d}-{val_loss:.4f}',
-        save_top_k=5,
+        # save_top_k=5,
         verbose=True,
     )
 
     trainer = pl.Trainer(
+        accelerator='dp',
         checkpoint_callback=checkpoint_callback,
         default_root_dir=args.cv_dir,
         gpus=args.gpus,
         max_epochs=args.max_epochs,
-        distributed_backend='dp',
+        # distributed_backend='dp',
     )
 
     trainer.fit(model)
@@ -86,6 +88,7 @@ def viz(args, sz=300):
     print("args.load: ", args.load)
     net.load_state_dict(torch.load(args.load)['state_dict'])
     net.cuda().eval()
+    print("load complete")
 
     # color coded interactions
     interactions = ['take', 'put', 'open' ,'close', 'toggle-on', 'toggle-off', 'slice']
@@ -172,7 +175,7 @@ if __name__ == '__main__':
     parser.add_argument('--cv_dir', default='cv/tmp/',help='Directory for saving checkpoint nets')
     parser.add_argument('--load', default=None)
     parser.add_argument('--data_dir', default=None)
-    parser.add_argument('--gpus', default=8, type=int)
+    parser.add_argument('--gpus', default=1, type=int)
     parser.add_argument('--print_every', default=10, type=int)
     parser.add_argument('--decay_after', default=35, type=int)
     parser.add_argument('--max_epochs', default=40, type=int)
@@ -184,10 +187,10 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
 
-    # if not os.path.exists(f'{args.data_dir}/seg_data.npz'):
-    #     dset = AffordanceDataset(out_sz=80)
-    #     dset.populate_dset(f'{args.data_dir}/episodes/', K=args.K)
-    #     dset.save_entries(args.data_dir)
+    if not os.path.exists(f'{args.data_dir}/seg_data.npz'):
+        dset = AffordanceDataset(out_sz=80)
+        dset.populate_dset(f'{args.data_dir}/episodes/', K=args.K)
+        dset.save_entries(args.data_dir)
 
     if args.train:
         train(args)

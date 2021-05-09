@@ -71,27 +71,32 @@ class UNet(pl.LightningModule):
 
         loss_fs = F.cross_entropy(preds_fs, (masks==2).long())
         loss = loss_act + loss_fs 
-
         return loss
 
     def training_step(self, batch, idx):
         frames, masks = batch['frame'], batch['mask']
         preds = self.get_preds(frames)
         loss = self.mask_loss(masks, preds)
-        logs = {'train_loss': loss}        
-        return {'loss': loss, 'log': logs}
+        logs = {'train_loss': loss}
+        # print(f"training step: current loss {loss}")        
+        # return {'loss': loss, 'log': logs}
+        return loss
 
     def validation_step(self, batch, idx):
         frames, masks = batch['frame'], batch['mask']
         preds = self.get_preds(frames)
         loss = self.mask_loss(masks, preds)
-        return {'val_loss': loss}
+        # return {'val_loss': loss}
+        # print("[INFO]validation step: ", loss)
+        return loss
 
     def validation_epoch_end(self, outputs):
-        avg_loss = torch.cat([x['val_loss'] for x in outputs]).mean()
+        # print("[INFO]validation epoch ends, output: ", outputs)
+        avg_loss = torch.tensor(outputs).mean()
         tensorboard_logs = {'val_loss': avg_loss}
         print (f'AVERAGE VAL LOSS = {avg_loss.item()}')
-        return {'avg_val_loss': avg_loss, 'log': tensorboard_logs}
+        # return {'avg_val_loss': avg_loss, 'log': tensorboard_logs}
+        return avg_loss
 
     def prepare_data(self):
         dset = AffordanceDataset(out_sz=80)
