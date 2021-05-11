@@ -166,7 +166,13 @@ class AffordanceDataset:
     # set mode (train or val) and print out split statistics
     def set_mode(self, split):
         self.transform = PairedTransform(split, self.out_sz)
-        self.data = self.train_data if split=='train' else self.val_data
+
+        if split == 'train':
+            self.data = self.train_data
+        elif split == 'val':
+            self.data = self.val_data
+        else:
+            self.data = self.entries
 
         count_by_verb = collections.defaultdict(int)
         for entry in self.data:

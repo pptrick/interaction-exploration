@@ -18,11 +18,11 @@ for GPU in 0; do
          --out-dir affordance_seg/data/rgb/ \
          NUM_PROCESSES 4 \
          LOAD interaction_exploration/cv/rgb/run2/ckpt.24.pth \
-         EVAL.DATASET affordance_seg/data/episode_splits/episodes_K_256_split_$GPU.json \
+         EVAL.DATASET affordance_seg/data/episode_splits/pcy_test.json \
          ENV.NUM_STEPS 256 \
          TORCH_GPU_ID $GPU \
          X_DISPLAY :$GPU \
-         ENV.ENV_NAME ThorBeaconsObjects-v0 \
+         ENV.ENV_NAME ThorBeaconsFixedScale-v0 \
          MODE eval &
 done
 

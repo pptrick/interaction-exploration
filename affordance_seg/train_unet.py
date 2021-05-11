@@ -78,7 +78,7 @@ def viz(args, sz=300):
     # create dataset
     dset = AffordanceDataset(out_sz=80)
     dset.load_entries(args.data_dir)
-    dset.set_mode('val')
+    dset.set_mode('all')
 
     np.random.seed(10)
     np.random.shuffle(dset.data)
@@ -97,6 +97,7 @@ def viz(args, sz=300):
     color_overlay = ColorOverlay(sz)
 
     for idx, instance in enumerate(dset):
+        print(idx)
 
         frame, mask = instance['frame'], instance['mask']
 
@@ -137,6 +138,8 @@ def viz(args, sz=300):
         viz_tensors.append(out)
 
         grid = make_grid(viz_tensors, nrow=len(viz_tensors))
+        if not os.path.exists('./viz_res/'):
+            os.mkdir('./viz_res/')
         util.show_wait(grid, T=0, save=f"./viz_res/viz_{idx}.png")
 
 def mean_stdev_stats(args):
