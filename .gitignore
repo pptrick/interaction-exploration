@@ -9,6 +9,6 @@ affordance_seg/cv
 viz_res/
 nohup.out
 
-affordance_seg/data/rgb/
+affordance_seg/data/rgb*
 
 cv/

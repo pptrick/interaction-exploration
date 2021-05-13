@@ -15,10 +15,10 @@
 
 for GPU in 0; do
     python -m affordance_seg.collect_dset \
-         --out-dir affordance_seg/data/rgb/ \
+         --out-dir affordance_seg/data/rgb_train/ \
          NUM_PROCESSES 4 \
          LOAD interaction_exploration/cv/rgb/run2/ckpt.24.pth \
-         EVAL.DATASET affordance_seg/data/episode_splits/pcy_test.json \
+         EVAL.DATASET affordance_seg/data/episode_splits/episodes_K_256_split_0.json \
          ENV.NUM_STEPS 256 \
          TORCH_GPU_ID $GPU \
          X_DISPLAY :$GPU \

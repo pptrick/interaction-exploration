@@ -8,6 +8,7 @@ import torch.optim
 import pytorch_lightning as pl
 from einops import rearrange
 import segmentation_models_pytorch as smp
+import numpy as np
 
 from .dataset import AffordanceDataset
 
@@ -58,6 +59,21 @@ class UNet(pl.LightningModule):
         pred_idx = act_probs[:, 1] * fs_probs[:, 0]
 
         return pred_idx
+
+    def get_processed_affordances_cpu(self, x):
+        with torch.no_grad():
+            preds = self.get_preds(x)
+            preds = {k:v[0].cpu() for k,v in preds.items()}
+        pred_idx = preds['act'].argmax(0)
+        # probabilities
+        pred_act = preds['act'] # (2, 7, H, W)
+        act_probs = [nn.Softmax2d()(pred_act[:, ch].unsqueeze(0))[0] for ch in range(7)]
+        act_probs = torch.stack(act_probs, 1) # (3, 7, 300, 300)
+        # entropy
+        act_entropy = (-act_probs * torch.log(act_probs+1e-12)).sum(0) # (7, 300, 300)
+        act_entropy_mask = act_entropy > 0.5*np.log(act_probs.shape[0]) # ignore these values
+        return (pred_idx==1) & (~act_entropy_mask)
+
 
     def mask_loss(self, masks, preds):
         preds_fs, preds_act = preds['fs'], preds['act']

@@ -1,6 +1,7 @@
 # Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved.
 
 import os
+from numpy.lib.utils import safe_eval
 import tqdm
 import numpy as np
 import torch
@@ -14,6 +15,7 @@ from pytorch_lightning.callbacks import ModelCheckpoint
 from interaction_exploration.utils import util
 from .dataset import AffordanceDataset
 from .unet import UNet
+from .utils import *
     
 def resize(tensor, sz=300, mode='bilinear'):
 
@@ -66,6 +68,7 @@ class ColorOverlay:
 
 
     def make_color_mask(self, pred, uframe, channel_to_color):
+        print(pred)
         self.viz_mask.zero_()
         for ch in channel_to_color:
             if torch.any(pred[ch]==1):
@@ -97,9 +100,8 @@ def viz(args, sz=300):
     color_overlay = ColorOverlay(sz)
 
     for idx, instance in enumerate(dset):
-        print(idx)
 
-        frame, mask = instance['frame'], instance['mask']
+        frame, mask = instance['frame'], instance['mask'] # frame: [3, 80, 80]; mask: [7, 80, 80]
 
         uframe = util.unnormalize(frame)
         uframe = resize(uframe, sz)
@@ -141,33 +143,37 @@ def viz(args, sz=300):
         if not os.path.exists('./viz_res/'):
             os.mkdir('./viz_res/')
         util.show_wait(grid, T=0, save=f"./viz_res/viz_{idx}.png")
+        break
 
-def mean_stdev_stats(args):
+def stats(args):
 
     dset = AffordanceDataset(out_sz=80)
-    dset.load_examples(args.data_dir)
-    dset.set_mode('train')
+    dset.load_entries(args.data_dir)
+    dset.set_mode('all')
 
     net = UNet(args)
     net.load_state_dict(torch.load(args.load)['state_dict'])
     net.cuda().eval()
 
-    loader = torch.utils.data.DataLoader(dset, batch_size=128, shuffle=True)
-
-    means, stds = [], []
-    for batch in tqdm.tqdm(loader, total=len(loader)):
-        frames, masks = batch['frame'], batch['mask']
+    IoU_buf = []
+    for idx, instance in enumerate(dset):
+        frames, masks = instance['frame'], instance['mask']
 
         with torch.no_grad():
-            preds = net.get_processed_affordances(frames.cuda()) # (32, 7, 80, 80)
+            preds = net.get_processed_affordances_cpu(frames.cuda().unsqueeze(0)) # (7, 80, 80)
+        IoU_buf.append(IOU(masks==1, preds))
 
-        preds = preds.view(preds.shape[0], 7, -1)
-        means.append(preds.mean(2))
-        stds.append(preds.std(2))
-    means = torch.cat(means, 0).mean(0)
-    stds = torch.cat(stds, 0).mean(0)
-    print (means)
-    print (stds)
+    IoU = []
+    for c in range(len(IoU_buf[0])):
+        sum = 0
+        ct = 0
+        for n in range(len(IoU_buf)):
+            if IoU_buf[n][c] is not None:
+                sum += IoU_buf[n][c]
+                ct += 1
+        sum = sum/ct if ct > 0 else -1
+        IoU.append(sum)
+    print(IoU)
 
 if __name__ == '__main__':
 
@@ -185,6 +191,7 @@ if __name__ == '__main__':
     parser.add_argument('--workers', type=int, default=8)
     parser.add_argument('--train', action ='store_true', default=False)
     parser.add_argument('--viz', action ='store_true', default=False)
+    parser.add_argument('--stats', action ='store_true', default=False)
     parser.add_argument('--eval', action ='store_true', default=False)
     parser.add_argument('--K', type=int, default=2000)
     args = parser.parse_args()
@@ -199,6 +206,8 @@ if __name__ == '__main__':
         train(args)
     elif args.viz:
         viz(args)
+    elif args.stats:
+        stats(args)
 
 
 
